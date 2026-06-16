@@ -3,151 +3,148 @@ package main;
 import java.awt.*;
 import java.awt.event.*;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-
 import javax.swing.*;
 import javax.swing.text.NumberFormatter;
 
-import com.mathworks.engine.*;
+public class UI implements ActionListener {
 
-public class UI implements ActionListener{
-	
-	JFrame window = new JFrame();
-	JButton close = new JButton();
-	JButton Calculate = new JButton();
+    JFrame window = new JFrame();
+    JButton close = new JButton("X");
+    JButton calculate = new JButton("Calculate");
 
-	JButton[] Material = new JButton[5];
-	JButton[] Device = new JButton[7];
-	
-	JLabel[] Item = new JLabel[9*4];
-	JTextField[] input = new JTextField[Item.length];
-	
-	JLabel Output = new JLabel();
-	JLabel State_Number_Question = new JLabel();
-	
-	JFormattedTextField  State_Number_input;
-	
-    MatlabEngine matlab;
+    JButton[] Material = new JButton[5];
+    JLabel State_Number_Question = new JLabel("How many states are there?");
+    JFormattedTextField State_Number_input;
+
+    JComboBox<String>[] DeviceDropdowns;   // NEW: device dropdowns
+
+    JPanel materialPanel = new JPanel();
+    JPanel devicePanel = new JPanel();
+    JPanel inputPanel = new JPanel();
 
     String[] Material_Name = {"Ideal Gas", "Water", "Carbon Dioxide", "R410a", "R314a"};
     String[] Device_Name = {"Piston", "Nozzle", "Compressor", "Condenser", "Boiler", "Pump", "Turbine"};
-    String[] Item_Name = {"State ","P", "V", "T", "x","v", "u", "h", "s"};
-    
+    String[] Item_Name = {"State ", "P", "V", "T", "x", "v", "u", "h", "s"};
+
     int Material_chosen = -1;
     int Number_of_States = 0;
-    int state_counter = 0;
-    ArrayList<Integer> Devices_chosen = new ArrayList<>();
-	public UI() {
-		window.setSize(Toolkit.getDefaultToolkit().getScreenSize().width/2, Toolkit.getDefaultToolkit().getScreenSize().height/2);
-		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		window.setLocationRelativeTo(null);
-		window.setUndecorated(true);
-		window.setVisible(true);
-		close.setSize(50, 50);
-		close.setText("X");
-		close.setLocation(window.getWidth()-50,0);
-		close.addActionListener(this);
-		window.add(close);
-		Material_Setter();
-		Device_Setter();
-		State_Number_Question.setText("How meny states are there?");
-		State_Number_Question.setLocation(50, 55*6);
-		State_Number_Question.setSize(160, 50);
-		window.add(State_Number_Question);
-		NumberFormat format = NumberFormat.getIntegerInstance();
-		format.setGroupingUsed(false);
-		NumberFormatter formatter = new NumberFormatter(format);
-		formatter.setAllowsInvalid(false);		
-		State_Number_input = new JFormattedTextField (formatter);
-		State_Number_input.setLocation(50, 55*6+50);
-		State_Number_input.setSize(160, 50);
-		window.add(State_Number_input);
-		
-		
-		
-		window.repaint();
-	}
-	public void Material_Setter() {
-		for(int i = 0; i < Material.length; i++) {
-			Material[i] = new JButton();
-			Material[i].setSize(150, 50);
-			Material[i].setText(Material_Name[i]);
-			Material[i].setLocation(50, 55*(i+1));
-			Material[i].addActionListener(this);
-			Material[i].setBackground(Color.gray);
-			window.add(Material[i]);
-		}
-	}
-	public void Device_Setter() {
-		for(int i = 0; i < Device.length; i++) {
-			Device[i] = new JButton();
-			Device[i].setSize(150, 50);
-			Device[i].setText(Device_Name[i]);
-			Device[i].setLocation(250, 55*(i+1));
-			Device[i].addActionListener(this);
-			Device[i].setBackground(Color.gray);
-			window.add(Device[i]);
-		}
 
-	}
-	public void Inputs() {
-		for(int i = 0; i < Number_of_States*Item_Name.length; i++) {
-			Item[i] = new JLabel();
-			if(i > Item_Name.length) {				
-				Item[i].setText(Item_Name[i-Item_Name.length]);
-			}
-			else {
-				Item[i].setText(Item_Name[i] + "<html><sub>"+Math.floor(i/9)+"</sub> =</html>");				
-			}
-			int x = 300;
-			int y = 50+i*10;
-			Item[i].setLocation(x,y);
-			Item[i].setSize(10, 10);
-			window.add(Item[i]);
+    Timer updateTimer;
+    @SuppressWarnings({"unused" })
+    public UI() {
 
-		}
-		window.repaint();
-	}
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		if(e.getSource() == close) {
-			System.exit(0);
-		}
-		if(e.getSource() == Calculate) {
-			
-		}
-		
-		for(int i = 0; i < Material.length; i++) {
-			if(e.getSource() == Material[i]) {
-				Material_chosen = i;
-				System.out.println(Material_Name[i]);
-				Material[i].setBackground(Color.green);
-			}
-			else {
-				Material[i].setBackground(Color.gray);
-			}
-		}
-		
-		for(int i = 0; i < Device.length; i++) {
-			if(e.getSource() == Device[i]) {
-				Device[i].setBackground(Color.green);
-				Devices_chosen.add(i);
-				state_counter++;
-				Inputs();
-				if(state_counter > Integer.parseInt(State_Number_input.getText())) {
-					state_counter = 0;
-					Devices_chosen.clear();;
-				}
-			}
-			if(Devices_chosen.contains(i)) {
-				Device[i].setBackground(Color.green);
-			}
-			else {
-				Device[i].setBackground(Color.gray);
-			}
-		}
-		
-	}
-	
-	
+        window.setSize(900, 600);
+        window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        window.setLocationRelativeTo(null);
+        window.setUndecorated(true);
+        window.setLayout(null);
+        window.setVisible(true);
+
+        close.setBounds(window.getWidth() - 50, 0, 50, 50);
+        close.addActionListener(this);
+        window.add(close);
+
+        materialPanel.setLayout(new GridLayout(Material.length, 1, 5, 5));
+        materialPanel.setBounds(175, 60, 150, 300);
+        window.add(materialPanel);
+
+        for (int i = 0; i < Material.length; i++) {
+            Material[i] = new JButton(Material_Name[i]);
+            Material[i].addActionListener(this);
+            Material[i].setBackground(Color.gray);
+            materialPanel.add(Material[i]);
+        }
+
+        State_Number_Question.setBounds(10, 60, 200, 30);
+        window.add(State_Number_Question);
+
+        NumberFormat format = NumberFormat.getIntegerInstance();
+        format.setGroupingUsed(false);
+        NumberFormatter formatter = new NumberFormatter(format);
+        formatter.setAllowsInvalid(false);
+
+        State_Number_input = new JFormattedTextField(formatter);
+        State_Number_input.setBounds(10, 100, 100, 30);
+        State_Number_input.addActionListener(e -> rebuildDeviceDropdowns());
+        window.add(State_Number_input);
+
+        devicePanel.setLayout(new GridLayout(0, 1, 5, 5));
+        devicePanel.setBounds(350, 60, 200, 300);
+        window.add(devicePanel);
+
+        inputPanel.setLayout(new GridLayout(0, 2, 5, 5));
+        inputPanel.setBounds(600, 60, 250, 400);
+        window.add(inputPanel);
+
+        calculate.setSize(200, 100);
+        calculate.setLocation(20, 400);
+        window.add(calculate);
+        
+        updateTimer = new Timer(1000 / 60, e -> window.repaint());
+        updateTimer.start();
+    }
+
+    @SuppressWarnings("unchecked")
+	private void rebuildDeviceDropdowns() {
+    	
+        String text = State_Number_input.getText();
+        
+        if (text.isEmpty()) return;
+
+        Number_of_States = Integer.parseInt(text);
+
+        devicePanel.removeAll();
+        
+        DeviceDropdowns = new JComboBox[Number_of_States];
+
+        for (int i = 0; i < Number_of_States; i++) {
+            DeviceDropdowns[i] = new JComboBox<>(Device_Name);
+            devicePanel.add(DeviceDropdowns[i]);
+        }
+        
+        rebuildInputFields();
+        
+        devicePanel.revalidate();
+        
+        devicePanel.repaint();
+    
+    }
+
+    private void rebuildInputFields() {
+        inputPanel.removeAll();
+
+        for (int s = 0; s < Number_of_States; s++) {
+            for (int i = 0; i < Item_Name.length; i++) {
+            	if(i != 0) {            		
+            		JLabel label = new JLabel(Item_Name[i] + " " + (s + 1));
+            		JTextField field = new JTextField();
+            		inputPanel.add(label);
+            		inputPanel.add(field);
+            	}
+            }
+        }
+
+        inputPanel.revalidate();
+        inputPanel.repaint();
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+
+        if (e.getSource() == close) {
+            System.exit(0);
+        }
+        if(e.getSource() == State_Number_input) {
+            State_Number_input.setText(null);
+        }
+        for (int i = 0; i < Material.length; i++) {
+            if (e.getSource() == Material[i]) {
+                Material_chosen = i;
+            }
+            Material[i].setBackground(i == Material_chosen ? Color.green : Color.gray);
+        }
+        if(e.getSource() == calculate) {
+        	
+        }
+    }
 }

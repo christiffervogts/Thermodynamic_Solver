@@ -21,7 +21,7 @@
             <artifactId>matlabengine</artifactId>
             <version>9.15.0</version>
             <scope>system</scope>
-            <systemPath>${matlab.home}/java/jar/engine.jar</systemPath>
+            <systemPath>${matlab.home}/extern/engines/java/jar/engine.jar</systemPath>
         </dependency>
     </dependencies>
 
@@ -41,6 +41,12 @@
                 <version>3.1.0</version>
                 <configuration>
                     <mainClass>main.Main</mainClass>
+                    <systemProperties>
+                        <systemProperty>
+                            <key>java.library.path</key>
+                            <value>${matlab.home}/bin/win64</value>
+                        </systemProperty>
+                    </systemProperties>
                 </configuration>
             </plugin>
         </plugins>
