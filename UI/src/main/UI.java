@@ -1,11 +1,26 @@
 package main;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Color;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.text.NumberFormat;
-import javax.swing.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFormattedTextField;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.Timer;
 import javax.swing.text.NumberFormatter;
 
+import com.mathworks.engine.MatlabEngine;
+import com.mathworks.engine.*;
 public class UI implements ActionListener {
 
     JFrame window = new JFrame();
@@ -146,5 +161,46 @@ public class UI implements ActionListener {
         if(e.getSource() == calculate) {
         	
         }
+    }
+    public static List<List<Double>> runMatlabFunction(String location, List<Double> peram1,
+    		List<Double> peram2, List<Double> peram3, List<Double> peram4, List<Double> peram5,
+    		List<Double> peram6, List<Double> peram7, List<Double> peram8)
+    		throws InterruptedException, ExecutionException, MatlabExecutionException,
+    		MatlabSyntaxException {
+        
+    	
+    	MatlabEngine engine = MatlabEngine.startMatlab();
+        List<List<Double>> results = new ArrayList<>();
+
+        try {
+            engine.eval("addpath('" + location + "')");
+
+            engine.putVariable("p1", peram1.stream().mapToDouble(Double::doubleValue).toArray());
+            engine.putVariable("p2", peram2.stream().mapToDouble(Double::doubleValue).toArray());
+            engine.putVariable("p3", peram3.stream().mapToDouble(Double::doubleValue).toArray());
+            engine.putVariable("p4", peram4.stream().mapToDouble(Double::doubleValue).toArray());
+            engine.putVariable("p5", peram5.stream().mapToDouble(Double::doubleValue).toArray());
+            engine.putVariable("p6", peram6.stream().mapToDouble(Double::doubleValue).toArray());
+            engine.putVariable("p7", peram7.stream().mapToDouble(Double::doubleValue).toArray());
+            engine.putVariable("p8", peram8.stream().mapToDouble(Double::doubleValue).toArray());
+
+            engine.eval("[o1, o2, o3, o4, o5, o6, o7, o8] = matlabFunction(p1, p2, p3, p4, p5, p6, p7, p8);");
+
+            String[] outputVars = {"o1", "o2", "o3", "o4", "o5", "o6", "o7", "o8"};
+            for (String var : outputVars) {
+                double[][] matrix = engine.getVariable(var);
+                List<Double> resultList = new ArrayList<>();
+                for (double[] row : matrix) {
+                    for (double val : row) {
+                        resultList.add(val);
+                    }
+                }
+                results.add(resultList);
+            }
+        } finally {
+            engine.close();
+        }
+
+        return results;
     }
 }
